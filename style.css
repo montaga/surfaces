@@ -1,0 +1,27 @@
+* {
+  font-family: sans-serif;
+}
+
+#CSCanvas {
+  position: absolute;
+  z-index: -10;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+#app {
+  position: absolute;
+  width: 20vw;
+  right: 10px;
+  top: 10px;
+}
+
+.surface{
+  background-color: rgba(255,255,255,.3);
+  border-radius: 10px;
+  padding: 5px;
+  margin: 10px;
+  backdrop-filter: blur(10px);
+}
