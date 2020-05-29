@@ -1,52 +1,6 @@
 /*jshint esversion: 6 */
 
-
-var cdy = CindyJS({
-  canvasname: "CSCanvas",
-  scripts: "cs*",
-  animation: {
-    autoplay: false
-  },
-  use: ["CindyGL", "katex", "symbolic"],
-  geometry: [{
-      name: "PA",
-      kind: "P",
-      type: "Free",
-      pos: [0.5, 0.37, 1],
-      narrow: true,
-      color: [1, 1, 1],
-      size: 8
-    },
-    {
-      name: "PB",
-      kind: "P",
-      type: "Free",
-      pos: [0.5, 0.5, 1],
-      narrow: true,
-      color: [1, 1, 1],
-      size: 8
-    },
-    {
-      name: "PC",
-      kind: "P",
-      type: "Free",
-      pos: [0.5, 0.1, 1],
-      narrow: true,
-      color: [1, 1, 1],
-      size: 8
-    }
-  ],
-  ports: [{
-    id: "CSCanvas",
-    //width: 700,
-    //height: 500,
-    //fill: "window",
-    transform: [{
-      visibleRect: [-0.5, 0.7, 0.5, -0.7]
-    }]
-  }]
-});
-
+var cdy;
 
 var data = {
   surfaces: [{
@@ -58,13 +12,105 @@ var data = {
 };
 
 function hex2ccolor(hex) {
-    var bigint = parseInt(hex.slice(1), 16);
-    var r = (bigint >> 16) & 255;
-    var g = (bigint >> 8) & 255;
-    var b = bigint & 255;
+  var bigint = parseInt(hex.slice(1), 16);
+  var r = (bigint >> 16) & 255;
+  var g = (bigint >> 8) & 255;
+  var b = bigint & 255;
 
-    return `[${r/255}, ${g/255}, ${b/255}]`;
+  return `[${r/255}, ${g/255}, ${b/255}]`;
 }
+
+function updatesurfaces(surfaces) {
+  for (let k = 0; k < surfaces.length; k++) {
+    cdy.evokeCS(`fun${k}(x,y,z) := (${surfaces[k].fun});
+        diff(fun${k}(x,y,z), x, dxfun${k}(x,y,z) := #);
+        diff(fun${k}(x,y,z), y, dyfun${k}(x,y,z) := #);
+        diff(fun${k}(x,y,z), z, dzfun${k}(x,y,z) := #);
+        `);
+  }
+  cdy.evokeCS(`
+    Nsurf = ${surfaces.length};
+    //F takes vec3 instead of 3 variables
+    F(p) := (p=p/zoom;[
+      ${surfaces.map((s,k)=>`fun${k}(p.x, p.y, p.z)`).join(', ')}
+    ]);
+    dF(p) := (p=p/zoom;[
+      ${surfaces.map((s,k)=>`[
+        dxfun${k}(p.x, p.y, p.z),
+        dyfun${k}(p.x, p.y, p.z),
+        dzfun${k}(p.x, p.y, p.z)
+        ]`).join(', ')}
+    ]);
+    frontcolors = [${surfaces.map(s => hex2ccolor(s.frontcolor)).join(",")}];
+    backcolors = [${surfaces.map(s => hex2ccolor(s.backcolor)).join(",")}];
+    alphas = [${surfaces.map(s => s.alpha).join(",")}];
+  `);
+}
+
+let scripts = {};
+Promise.all(
+    [
+      'init',
+      'draw',
+      'mousedown',
+      'mouseup'
+    ].map(
+      script =>
+      fetch(`raycaster/${script}.cs`)
+      .then(r => r.text())
+      .then(txt => scripts[script] = txt)
+    )
+  )
+  .then(function() {
+    cdy = CindyJS({
+      canvasname: "CSCanvas",
+      scripts: scripts,
+      animation: {
+        autoplay: false
+      },
+      use: ["CindyGL", "katex", "symbolic"],
+      geometry: [{
+          name: "PA",
+          kind: "P",
+          type: "Free",
+          pos: [0.5, 0.37, 1],
+          narrow: true,
+          color: [1, 1, 1],
+          size: 8
+        },
+        {
+          name: "PB",
+          kind: "P",
+          type: "Free",
+          pos: [0.5, 0.5, 1],
+          narrow: true,
+          color: [1, 1, 1],
+          size: 8
+        },
+        {
+          name: "PC",
+          kind: "P",
+          type: "Free",
+          pos: [0.5, 0.1, 1],
+          narrow: true,
+          color: [1, 1, 1],
+          size: 8
+        }
+      ],
+      ports: [{
+        id: "CSCanvas",
+        //width: 700,
+        //height: 500,
+        //fill: "window",
+        transform: [{
+          visibleRect: [-0.5, 0.7, 0.5, -0.7]
+        }]
+      }],
+    });
+    updatesurfaces(data.surfaces);
+  });
+
+
 
 window.addEventListener('DOMContentLoaded', (event) => {
   Vue.component('surface-component', {
@@ -109,6 +155,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
       }
     }
   });
+  
 
   var app = new Vue({
     el: '#app',
@@ -144,35 +191,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
       },
     },
     watch: {
-      surfaces: (surfaces) => {
-        console.log("surfaces changed? update to CindyJS");
-        //console.log(surfaces);
-        for (let k = 0; k < surfaces.length; k++) {
-          cdy.evokeCS(`fun${k}(x,y,z) := (${surfaces[k].fun});
-              diff(fun${k}(x,y,z), x, dxfun${k}(x,y,z) := #);
-              diff(fun${k}(x,y,z), y, dyfun${k}(x,y,z) := #);
-              diff(fun${k}(x,y,z), z, dzfun${k}(x,y,z) := #);
-              `);
-        }
-        cdy.evokeCS(`
-          Nsurf = ${surfaces.length};
-          //F takes vec3 instead of 3 variables
-          F(p) := (p=p/zoom;[
-            ${surfaces.map((s,k)=>`fun${k}(p.x, p.y, p.z)`).join(', ')}
-          ]);
-          dF(p) := (p=p/zoom;[
-            ${surfaces.map((s,k)=>`[
-              dxfun${k}(p.x, p.y, p.z),
-              dyfun${k}(p.x, p.y, p.z),
-              dzfun${k}(p.x, p.y, p.z)
-              ]`).join(', ')}
-          ]);
-          frontcolors = [${surfaces.map(s => hex2ccolor(s.frontcolor)).join(",")}];
-          backcolors = [${surfaces.map(s => hex2ccolor(s.backcolor)).join(",")}];
-          alphas = [${surfaces.map(s => s.alpha).join(",")}];
-        `);
-
-      }
+      surfaces: updatesurfaces
     }
   });
 });
