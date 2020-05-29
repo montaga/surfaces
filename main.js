@@ -51,8 +51,8 @@ var cdy = CindyJS({
 var data = {
   surfaces: [{
     fun: "(x ^ 2 + y ^ 2 + z ^ 2 - (0.5 + a) ^ 2) ^ 2 - (3.0 * ((0.5 + a) ^ 2) - 1.0) / (3.0 - ((0.5 + a) ^ 2)) * (1 - z - sqrt(2) * x) * (1 - z + sqrt(2) * x) * (1 + z + sqrt(2) * y) * (1 + z - sqrt(2) * y)",
-    frontcolor: "#ffffff",
-    backcolor: "#00ffff",
+    frontcolor: "#516594",
+    backcolor: "#c47c17",
     alpha: 1
   }]
 };
@@ -117,8 +117,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
       add: () => {
         data.surfaces.push({
           fun: "x^2+y^2+z^2-1",
-          frontcolor: "#ffffff",
-          backcolor: "#00ffff",
+          frontcolor: "#bbbbbb",
+          backcolor: "#50aa20",
           alpha: 1
         });
       },

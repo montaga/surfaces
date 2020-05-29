@@ -57,7 +57,7 @@
     //ray(pixel, t) is the point in R^3 that lies at position t the ray behind the pixel at location pixel(vec2)
     //t=0 is corresponds to points within the interesting area near (0,0,0)
     ray(pixel, t) := mat * ((t+2.2) * (pixel.x, pixel.y, 1) + (0, 0, -2.2));
-    
+    raydir(pixel) := (v = mat * (pixel.x, pixel.y, 1); v/|v|);
     //sphere with radius 1 for clipping
     S(r) := (r * r - 1);
     
@@ -66,7 +66,8 @@
     fun0(x, y, z) := (x ^ 2 + y ^ 2 + z ^ 2 - (0.5 + a) ^ 2) ^ 2 - (3.0 * ((0.5 + a) ^ 2) - 1.0) / (3.0 - ((0.5 + a) ^ 2)) * (1 - z - sqrt(2) * x) * (1 - z + sqrt(2) * x) * (1 + z + sqrt(2) * y) * (1 + z - sqrt(2) * y);
     
 
-    frontcolors = backcolors = [[1,1,1]];
+    frontcolors = [[0.3176470588235294, 0.396078431372549, 0.5803921568627451]];
+    backcolors = [[0.9215686274509803, 0.5372549019607843, 0]];
     alphas = [.99];
     Nsurf = 1;
     
@@ -139,6 +140,7 @@
     //because of the alpha-transparency updatecolor should be called for the intersections with large dst first
     updatecolor(pixel, dst, color) := (
       regional(x, normal, Fvec, dFvec, fval, nval, frontcolor, backcolor, alpha);
+      rd = raydir(pixel);
       
       x = ray(pixel, dst); //the intersection point in R^3
       Fvec = F(x);
@@ -177,8 +179,8 @@
 
         forall(1..length(lightdirs),
           //illuminate if the normal and lightdir point in the same direction
-          illumination = max(0, (lightdirs_# / abs(lightdirs_#)) * normal);
-          color = color + alpha * (illumination ^ gamma_#) * componentwise(colors_#, frontcolor);
+          illumination = abs((lightdirs_#) * normal);
+          color = color + alpha * (illumination ^ gamma_#) * if(rd*normal<0, frontcolor, backcolor);
         );
       //);
       
@@ -303,15 +305,16 @@
     lightdirs = [
         ray((.0, .0), -100), //enlights parts of the surface which normal points away from the camera
         ray((.0, .0), -100),
-        ray((.0, .0), 100), //Has an effect, if the normal of the surface points to the camera
-        ray((.0, .0), 100),
+        //ray((.0, .0), 100), //Has an effect, if the normal of the surface points to the camera
+        //ray((.0, .0), 100),
         (-10, 10, -2.),
         (10, -8, 3.)
     ];
+    lightdirs = apply(lightdirs, l, l/|l|);
 
-    gamma = [1, 10, 1, 10, 5, 5];
+    gamma = [1, 10, 4, 5];
     
-            
+      /*      
     colors = [
         (.3, .5, 1.),
         (1, 2, 2) / 2,
@@ -319,7 +322,7 @@
         (2, 2, 1) / 2,
         .9 * (.7, .8, .3),
         .9 * (.6, .1, .6)
-    ];
+    ];*/
 
 
     //what color should be given to pixel with pixel-coordinate pixel (vec2)
