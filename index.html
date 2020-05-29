@@ -180,8 +180,9 @@
         forall(1..length(lightdirs),
           //illuminate if the normal and lightdir point in the same direction
           illumination = abs((lightdirs_#) * normal);
-          color = color + alpha * (illumination ^ gamma_#) * if(rd*normal<0, frontcolor, backcolor);
+          color = color + alpha * .7 * (illumination ^ gamma_#) * (if(rd*normal<0, frontcolor, backcolor) + [.05,.05,.05]);
         );
+        color = color + alpha * .3 * if(rd*normal<0, frontcolor, backcolor); //ambient light
       //);
       
       color
@@ -307,7 +308,7 @@
         ray((.0, .0), -100),
         //ray((.0, .0), 100), //Has an effect, if the normal of the surface points to the camera
         //ray((.0, .0), 100),
-        (-10, 10, -2.),
+        //(-10, 10, -2.),
         (10, -8, 3.)
     ];
     lightdirs = apply(lightdirs, l, l/|l|);
