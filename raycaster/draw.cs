@@ -160,5 +160,5 @@ colorplot(
 
 //lines for the sliders
 draw((.55, .4), (.55, -.4), color -> (0, 0, 0));
-draw((.6, .4), (.6, -.4), color -> (0, 0, 0));
+//draw((.6, .4), (.6, -.4), color -> (0, 0, 0));
 draw((.65, .4), (.65, -.4), color -> (0, 0, 0));   

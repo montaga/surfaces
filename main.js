@@ -78,7 +78,7 @@ Promise.all(
           color: [1, 1, 1],
           size: 8
         },
-        {
+      /*  {
           name: "PB",
           kind: "P",
           type: "Free",
@@ -86,7 +86,7 @@ Promise.all(
           narrow: true,
           color: [1, 1, 1],
           size: 8
-        },
+        },*/
         {
           name: "PC",
           kind: "P",
