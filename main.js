@@ -124,6 +124,9 @@ window.addEventListener('DOMContentLoaded', (event) => {
         <input type="text" v-model="surface.fun">
       </div>
       <div>
+        <span class="math-field"></span>
+      </div>
+      <div>
         <input type="color" v-model="surface.frontcolor">
         <input type="color" v-model="surface.backcolor">
         <input type="range" min="0" step=".01" max="1" v-model="surface.alpha">
@@ -194,4 +197,15 @@ window.addEventListener('DOMContentLoaded', (event) => {
       surfaces: updatesurfaces
     }
   });
+});
+
+
+var MQ = MathQuill.getInterface(2); // for backcompat
+var mathField = MQ.MathField(document.querySelector('.math-field'), {
+  spaceBehavesLikeTab: true, // configurable
+  handlers: {
+    edit: function() { // useful event handlers
+      console.log(mathField.latex()); // simple API
+    }
+  }
 });
