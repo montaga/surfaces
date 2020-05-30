@@ -77,7 +77,7 @@ Promise.all(
       animation: {
         autoplay: false
       },
-      use: ["CindyGL", "katex", "symbolic"],
+      use: ["CindyGL", "symbolic"],
       geometry: [{
           name: "PA",
           kind: "P",

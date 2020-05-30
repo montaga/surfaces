@@ -113,54 +113,14 @@ componentwise(a, b):= (a_1*b_1, a_2*b_2, a_3*b_3);
 
 //update the color color for the pixel at position pixel assuming that the surface has been intersected at ray(pixel, dst)
 //because of the alpha-transparency updatecolor should be called for the intersections with large dst first
-updatecolor(pixel, dst, color) := (
-  regional(x, normal, Fvec, dFvec, fval, nval, frontcolor, backcolor, alpha);
-  rd = raydir(pixel);
-  
-  x = ray(pixel, dst); //the intersection point in R^3
-  Fvec = F(x);
-  dFvec = dF(x);
-  
-  normal = dFvec_1;
-  fval = |Fvec_1|/|dFvec_1|;
-  frontcolor = frontcolors_1;
-  backcolor = backcolors_1;
-  alpha = alphas_1;
-  forall(1..Nsurf, pid,
-    nval = |Fvec_pid|/|dFvec_pid|;
-    if(nval<fval,
-      fval = nval;
-      normal = dFvec_pid; //todo update surfcolor
-      frontcolor = frontcolors_pid;
-      backcolor = backcolors_pid;
-      alpha = alphas_pid;
-    );
+updatecolor() := (  
+  color = (1 - alpha) * color;
+  forall(1..length(lightdirs),
+    //illuminate if the normal and lightdir point in the same direction
+    illumination = abs((lightdirs_#) * normal);
+    color = color + alpha * .7 * (illumination ^ gamma_#) * (if(rd * normal<0, frontcolor, backcolor) + [.05,.05,.05]);
   );
-  /*
-  normal = [0,0,0];
-  surfcolor = [0,0,0];
-  acc = 0;
-  forall(1..Nsurf, pid,
-    nval = max(0,1-10*|Fvec_pid|);
-    normal = normal + nval*dFvec_pid;
-    surfcolor = surfcolor + nval*surfcolors_pid;
-    acc = acc+nval;
-  );
-  //normal = normal / acc;
-  surfcolor = surfcolor / acc;*/
-  //if(fval<10,
-    color = (1 - alpha) * color;
-    normal = normal / abs(normal);
-
-    forall(1..length(lightdirs),
-      //illuminate if the normal and lightdir point in the same direction
-      illumination = abs((lightdirs_#) * normal);
-      color = color + alpha * .7 * (illumination ^ gamma_#) * (if(rd*normal<0, frontcolor, backcolor) + [.05,.05,.05]);
-    );
-    color = color + alpha * .3 * if(rd*normal<0, frontcolor, backcolor); //ambient light
-  //);
-  
-  color
+  color = color + alpha * .3 * if(rd * normal<0, frontcolor, backcolor); //ambient light
 );
 
 
@@ -204,9 +164,12 @@ bisectf(pixel, x0, x1) := (
               (x0 = m; v0 = vm;)
           );
         );
+        normal = dF(ray(pixel, m))_pid; normal = normal / abs(normal);
+        frontcolor = frontcolors_pid;
+        backcolor = backcolors_pid;
+        alpha = alphas_pid;
       );
     );
-    m //return value   
 );
 
 
