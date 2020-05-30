@@ -17,15 +17,14 @@
   <div id="CSCanvas" style="border:0px"></div>
   <div id="app">
     <div>
-      <button v-on:click="add">add surface</button>
-      <button v-on:click="addcoordinates">add coordinates</button>
-    </div>
-    <div>
       background: <input type="color" v-model="backgroundcolor">
       light: <input type="color" v-model="lightcolor">
     </div>
     <surface-component v-for="(surface, index) in surfaces" v-bind:surface="surface" v-bind:index="index" v-bind:onsurface="surfaces.length==1"></surface-component>
-
+    <div>
+      <button v-on:click="add">add surface</button>
+      <button v-on:click="addcoordinates">add coordinates</button>
+    </div>
   </div>
   <!--
       
