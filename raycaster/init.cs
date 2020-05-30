@@ -43,6 +43,8 @@ fun0(x, y, z) := (x ^ 2 + y ^ 2 + z ^ 2 - (0.5 + a) ^ 2) ^ 2 - (3.0 * ((0.5 + a)
 
 frontcolors = [[0.3176470588235294, 0.396078431372549, 0.5803921568627451]];
 backcolors = [[0.9215686274509803, 0.5372549019607843, 0]];
+backgroundcolor = gray(0.7);
+lightcolor = gray(.2);
 alphas = [.99];
 Nsurf = 1;
 
@@ -118,7 +120,7 @@ updatecolor() := (
   forall(1..length(lightdirs),
     //illuminate if the normal and lightdir point in the same direction
     illumination = abs((lightdirs_#) * normal);
-    color = color + alpha * .7 * (illumination ^ gamma_#) * (if(rd * normal<0, frontcolor, backcolor) + [.05,.05,.05]);
+    color = color + alpha * .7 * (illumination ^ gamma_#) * (if(rd * normal<0, frontcolor, backcolor) + lightcolor);
   );
   color = color + alpha * .3 * if(rd * normal<0, frontcolor, backcolor); //ambient light
 );

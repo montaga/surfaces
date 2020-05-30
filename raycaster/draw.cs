@@ -145,7 +145,7 @@ colorplot(
   spolyvalues = apply([-2, 0, 2], v, S(ray(#, v))); //evaluate S along ray
   spoly = B3 * spolyvalues;                         //interpolate to monomial basis
   D = (spoly_2 * spoly_2) - 4. * spoly_3 * spoly_1; //discriminant of spoly
-  color = gray(0.7); //the color, which will be returned
+  color = backgroundcolor; //the color, which will be returned
   if (D >= 0, //ray intersects ball
     raycast(
       #, 
