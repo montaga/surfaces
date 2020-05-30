@@ -22,11 +22,7 @@ function hex2ccolor(hex) {
 
 function updatesurfaces(surfaces) {
   for (let k = 0; k < surfaces.length; k++) {
-    cdy.evokeCS(`fun${k}(x,y,z) := (${surfaces[k].fun});
-        diff(fun${k}(x,y,z), x, dxfun${k}(x,y,z) := #);
-        diff(fun${k}(x,y,z), y, dyfun${k}(x,y,z) := #);
-        diff(fun${k}(x,y,z), z, dzfun${k}(x,y,z) := #);
-        `);
+    updatesurface(k);
   }
   cdy.evokeCS(`
     Nsurf = ${surfaces.length};
@@ -44,6 +40,19 @@ function updatesurfaces(surfaces) {
     frontcolors = [${surfaces.map(s => hex2ccolor(s.frontcolor)).join(",")}];
     backcolors = [${surfaces.map(s => hex2ccolor(s.backcolor)).join(",")}];
     alphas = [${surfaces.map(s => s.alpha).join(",")}];
+  `);
+}
+
+function updatesurface(k) {
+  cdy.evokeCS(`fun${k}(x,y,z) := (${data.surfaces[k].fun});
+  ////fallbacks if diff does not work
+  eps = 0.01;
+  dxfun${k}(x,y,z) := (fun${k}(x+eps,y,z)-fun${k}(x-eps,y,z))/(2*eps);
+  dyfun${k}(x,y,z) := (fun${k}(x,y+eps,z)-fun${k}(x,y-eps,z))/(2*eps);
+  dzfun${k}(x,y,z) := (fun${k}(x,y,z+eps)-fun${k}(x,y,z-eps))/(2*eps);
+  diff(fun${k}(x,y,z), x, dxfun${k}(x,y,z) := #);
+  diff(fun${k}(x,y,z), y, dyfun${k}(x,y,z) := #);
+  diff(fun${k}(x,y,z), z, dzfun${k}(x,y,z) := #);
   `);
 }
 
@@ -137,12 +146,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     },
     watch: {
       "surface.fun": function(fun) {
-        let k = this.index;
-        cdy.evokeCS(`fun${k}(x,y,z) := (${fun});
-        diff(fun${k}(x,y,z), x, dxfun${k}(x,y,z) := #);
-        diff(fun${k}(x,y,z), y, dyfun${k}(x,y,z) := #);
-        diff(fun${k}(x,y,z), z, dzfun${k}(x,y,z) := #);
-        `);
+        updatesurface(this.index);
       },
       "surface.frontcolor": function(color) {
         cdy.evokeCS(`frontcolors_${this.index+1} = ${hex2ccolor(color)};`);
