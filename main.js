@@ -2,9 +2,14 @@
 
 var cdy;
 
+var MQ = MathQuill.getInterface(2); // for backcompat
+
+
 var data = {
   surfaces: [{
-    fun: "(x ^ 2 + y ^ 2 + z ^ 2 - (0.5 + a) ^ 2) ^ 2 - (3.0 * ((0.5 + a) ^ 2) - 1.0) / (3.0 - ((0.5 + a) ^ 2)) * (1 - z - sqrt(2) * x) * (1 - z + sqrt(2) * x) * (1 + z + sqrt(2) * y) * (1 + z - sqrt(2) * y)",
+    //fun: "(x ^ 2 + y ^ 2 + z ^ 2 - (0.5 + a) ^ 2) ^ 2 - (3.0 * ((0.5 + a) ^ 2) - 1.0) / (3.0 - ((0.5 + a) ^ 2)) * (1 - z - sqrt(2) * x) * (1 - z + sqrt(2) * x) * (1 + z + sqrt(2) * y) * (1 + z - sqrt(2) * y)",
+    //latex: `{\left({x}^{2}+{y}^{2}+{z}^{2}-{\left(\frac{1}{{2}}+{a}\right)}^{2}\right)}^{2}-\frac{{{3}\cdot{\left({\left(\frac{1}{{2}}+{a}\right)}^{2}\right)}-{1}}}{{{3}-{\left({\left(\frac{1}{{2}}+{a}\right)}^{2}\right)}}}\cdot{\left({1}-{z}-\sqrt{{{2}}}\cdot{x}\right)}\cdot{\left({1}-{z}+\sqrt{{{2}}}\cdot{x}\right)}\cdot{\left({1}+{z}+\sqrt{{{2}}}\cdot{y}\right)}\cdot{\left({1}+{z}-\sqrt{{{2}}}\cdot{y}\right)}`,
+    latex: `x^2+y^2+z^2-2`,
     frontcolor: "#516594",
     backcolor: "#c47c17",
     alpha: 1
@@ -18,6 +23,19 @@ function hex2ccolor(hex) {
   var b = bigint & 255;
 
   return `[${r/255}, ${g/255}, ${b/255}]`;
+}
+
+function latex2csterm(latex) {
+  //adopted from https://stackoverflow.com/a/18499089
+  return latex
+    .replace(/\\frac{([^}]+)}{([^}]+)}/g, "($1)/($2)") // fractions
+    .replace(/\\cdot/g, "*")
+    .replace(/\\left\(/g, "(") // open parenthesis
+    .replace(/\\right\)/g, ")") // close parenthesis
+    .replace(/[^\(](floor|ceil|(sin|cos|tan|sec|csc|cot)h?)\(([^\(\)]+)\)[^\)]/g, "($&)") // functions
+    .replace(/([^(floor|ceil|(sin|cos|tan|sec|csc|cot)h?|\+|\-|\*|\/)])\(/g, "$1*(")
+    .replace(/\)([\w])/g, ")*$1")
+    .replace(/([0-9])([A-Za-z])/g, "$1*$2");
 }
 
 function updatesurfaces(surfaces) {
@@ -78,15 +96,15 @@ Promise.all(
           color: [1, 1, 1],
           size: 8
         },
-      /*  {
-          name: "PB",
-          kind: "P",
-          type: "Free",
-          pos: [0.5, 0.5, 1],
-          narrow: true,
-          color: [1, 1, 1],
-          size: 8
-        },*/
+        /*  {
+            name: "PB",
+            kind: "P",
+            type: "Free",
+            pos: [0.5, 0.5, 1],
+            narrow: true,
+            color: [1, 1, 1],
+            size: 8
+          },*/
         {
           name: "PC",
           kind: "P",
@@ -121,10 +139,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
         {{ surface.fun }}
       </div>
       <div>
-        <input type="text" v-model="surface.fun">
+        {{ surface.latex }}
       </div>
       <div>
-        <span class="math-field"></span>
+        <textarea type="text" v-model="surface.fun"></textarea>
+      </div>
+      <div>
+        <span class="math-field" ref="math"></span>
       </div>
       <div>
         <input type="color" v-model="surface.frontcolor">
@@ -155,10 +176,26 @@ window.addEventListener('DOMContentLoaded', (event) => {
       },
       "surface.alpha": function(alpha) {
         cdy.evokeCS(`alphas_${this.index+1} = ${alpha};`);
-      }
-    }
+      },
+      "surface.latex": function(latex) {
+          //adopted from https://stackoverflow.com/a/18499089
+          this.surface.fun = latex2csterm(latex);
+        }
+    },
+    mounted: function() {
+      this.mathField = MQ.MathField(this.$refs.math, {
+        spaceBehavesLikeTab: true, // configurable
+        handlers: {
+          edit: () => { // useful event handlers
+            this.surface.latex = this.mathField.latex(); // simple API
+          }
+        }
+      });
+      this.mathField.latex(this.surface.latex);
+      this.surface.fun = latex2csterm(this.surface.latex);
+    },
   });
-  
+
 
   var app = new Vue({
     el: '#app',
@@ -167,6 +204,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
       add: () => {
         data.surfaces.push({
           fun: "x^2+y^2+z^2-1",
+          latex: "x^2+y^2+z^2-1",
           frontcolor: "#bbbbbb",
           backcolor: "#50aa20",
           alpha: 1
@@ -174,19 +212,19 @@ window.addEventListener('DOMContentLoaded', (event) => {
       },
       addcoordinates: () => {
         data.surfaces.push({
-          fun: "y^2+z^2+x*(x-1)^3*((x-.25)^2+.02)",
+          latex: "y^2+z^2+x\\cdot\\left(x-1\\right)^3\\cdot\\left(\\left(x-\\frac{1}{4}\\right)^2+0.02\\right)",
           frontcolor: "#ff0000",
           backcolor: "#ff0000",
           alpha: 1
         });
         data.surfaces.push({
-          fun: "x^2+z^2+y*(y-1)^3*((y-.25)^2+.02)",
+          latex: "x^2+z^2+y\\cdot\\left(y-1\\right)^3\\cdot\\left(\\left(y-\\frac{1}{4}\\right)^2+0.02\\right)",
           frontcolor: "#00ff00",
           backcolor: "#00ff00",
           alpha: 1
         });
         data.surfaces.push({
-          fun: "x^2+y^2+z*(z-1)^3*((z-.25)^2+.02)",
+          latex: "x^2+y^2+z\\cdot\\left(z-1\\right)^3\\cdot\\left(\\left(z-\\frac{1}{4}\\right)^2+0.02\\right)",
           frontcolor: "#0000ff",
           backcolor: "#0000ff",
           alpha: 1
@@ -197,15 +235,4 @@ window.addEventListener('DOMContentLoaded', (event) => {
       surfaces: updatesurfaces
     }
   });
-});
-
-
-var MQ = MathQuill.getInterface(2); // for backcompat
-var mathField = MQ.MathField(document.querySelector('.math-field'), {
-  spaceBehavesLikeTab: true, // configurable
-  handlers: {
-    edit: function() { // useful event handlers
-      console.log(mathField.latex()); // simple API
-    }
-  }
 });
