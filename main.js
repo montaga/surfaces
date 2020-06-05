@@ -184,8 +184,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
         cdy.evokeCS(`alphas_${this.index+1} = ${alpha};`);
       },
       "surface.latex": function(latex) {
-          //adopted from https://stackoverflow.com/a/18499089
           this.surface.fun = latex2csterm(latex);
+          updatesurface(this.index);
         }
     },
     mounted: function() {
