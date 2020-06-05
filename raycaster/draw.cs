@@ -61,8 +61,9 @@ colors = [
 
 //what color should be given to pixel with pixel-coordinate pixel (vec2)
 if(min(alphas)<.99,
-  computeColor(pixel, l, u, color) := (
+  raycast(pixel, l, u) := (
     regional(a, b);
+    rd = raydir(pixel);
     //traverse binary tree (DFS) using heap-indices
     //1 is root node and node v has children 2*v and 2*v+1
     id = 1; 
@@ -85,7 +86,8 @@ if(min(alphas)<.99,
         cnt = nsign(pixel, a, b);
         if(cnt == 1 % (b-a)<1e-4, //in this case we found a root (or it is likely to have a multiple root)
           //=>colorize and break DFS
-          color = updatecolor(pixel, bisectf(pixel, a, b), color);
+          bisectf(pixel, a, b);
+          updatecolor();
           id = next(id),
         if(cnt == 0, //there is no root
           id = next(id), //break DFS
@@ -95,10 +97,10 @@ if(min(alphas)<.99,
         )
     );  
     ));
-    color
   );,
-  computeColor(pixel, l, u, color) := (
+  raycast(pixel, l, u) := (
     regional(a, b);
+    rd = raydir(pixel);
     //traverse binary tree (DFS) using heap-indices
     //1 is root node and node v has children 2*v and 2*v+1
     id = 1; 
@@ -130,9 +132,10 @@ if(min(alphas)<.99,
           //otherwise cnt>=2: there are cnt - 2*k roots.
           id = 2*id;  //visit first child within DFS
         )
-    );  
-    ));
-    if(intersect, updatecolor(pixel, bisectf(pixel, a, b), color), color)
+        );  
+      );
+    );
+    if(intersect, bisectf(pixel, a, b); updatecolor());
   );
 );
   
@@ -142,14 +145,12 @@ colorplot(
   spolyvalues = apply([-2, 0, 2], v, S(ray(#, v))); //evaluate S along ray
   spoly = B3 * spolyvalues;                         //interpolate to monomial basis
   D = (spoly_2 * spoly_2) - 4. * spoly_3 * spoly_1; //discriminant of spoly
-  
-  color = gray(0.7); //the color, which will be returned
+  color = backgroundcolor; //the color, which will be returned
   if (D >= 0, //ray intersects ball
-    color = computeColor(
+    raycast(
       #, 
       (-spoly_2 - re(sqrt(D))) / (2 * spoly_3), //intersection entering the ball
-      (-spoly_2 + re(sqrt(D))) / (2 * spoly_3), //intersection leaving the ball
-      color
+      (-spoly_2 + re(sqrt(D))) / (2 * spoly_3) //intersection leaving the ball
     );              
   );
   color //return value
