@@ -193,6 +193,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
       updatesurface(this.index);
             //this.surface.fun = latex2csterm(this.surface.latex);
     },
+    updated: function() {
+      this.mathField.latex(this.surface.latex);
+      this.surface.fun = this.mathField.text();
+    },
   });
 
 
