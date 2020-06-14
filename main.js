@@ -183,12 +183,15 @@ window.addEventListener('DOMContentLoaded', (event) => {
         handlers: {
           edit: () => { // useful event handlers
             this.surface.latex = this.mathField.latex(); // simple API
-            this.surface.fun = this.mathField.text()
+            this.surface.fun = this.mathField.text();
+            updatesurface(this.index);
           }
         }
       });
       this.mathField.latex(this.surface.latex);
-      //this.surface.fun = latex2csterm(this.surface.latex);
+      this.surface.fun = this.mathField.text();
+      updatesurface(this.index);
+            //this.surface.fun = latex2csterm(this.surface.latex);
     },
   });
 
