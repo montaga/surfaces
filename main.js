@@ -7,7 +7,7 @@ var MQ = MathQuill.getInterface(2); // for backcompat
 
 var data = {
   surfaces: [{
-    latex: `{\\left({x}^{2}+{y}^{2}+{z}^{2}-{\\left(\\frac{1}{{2}}+{a}\\right)}^{2}\\right)}^{2}-\\frac{{{3}\\cdot{\\left({\\left(\\frac{1}{{2}}+{a}\\right)}^{2}\\right)}-{1}}}{{{3}-{\\left({\\left(\\frac{1}{{2}}+{a}\\right)}^{2}\\right)}}}\\cdot{\\left({1}-{z}-\\sqrt{{{2}}}\\cdot{x}\\right)}\\cdot{\\left({1}-{z}+\\sqrt{{{2}}}\\cdot{x}\\right)}\\cdot{\\left({1}+{z}+\\sqrt{{{2}}}\\cdot{y}\\right)}\\cdot{\\left({1}+{z}-\\sqrt{{{2}}}\\cdot{y}\\right)}`,
+    latex: `{\\left({x}^{2}+{y}^{2}+{z}^{2}-{\\left(\\frac{1}{2}+{a}\\right)}^{2}\\right)}^{2}-\\frac{{{3}\\cdot{\\left({\\left(\\frac{1}{{2}}+{a}\\right)}^{2}\\right)}-{1}}}{{{3}-{\\left({\\left(\\frac{1}{{2}}+{a}\\right)}^{2}\\right)}}}\\cdot{\\left({1}-{z}-\\sqrt{{{2}}}\\cdot{x}\\right)}\\cdot{\\left({1}-{z}+\\sqrt{{{2}}}\\cdot{x}\\right)}\\cdot{\\left({1}+{z}+\\sqrt{{{2}}}\\cdot{y}\\right)}\\cdot{\\left({1}+{z}-\\sqrt{{{2}}}\\cdot{y}\\right)}`,
     frontcolor: "#516594",
     backcolor: "#c47c17",
     alpha: 1
@@ -145,15 +145,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
     template: `
     <div class="surface">
       <div>
-        {{ surface.fun }}
-      </div>
-      <div>
-        {{ surface.latex }}
-      </div>
-      <div>
-        <textarea type="text" v-model="surface.fun"></textarea>
-      </div>
-      <div>
         <span class="math-field" ref="math"></span>
       </div>
       <div>
@@ -182,7 +173,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
         cdy.evokeCS(`alphas_${this.index+1} = ${alpha};`);
       },
       "surface.latex": function(latex) {
-          this.surface.fun = latex2csterm(latex);
+          //this.surface.fun = latex2csterm(latex);
           updatesurface(this.index);
         }
     },
@@ -192,11 +183,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
         handlers: {
           edit: () => { // useful event handlers
             this.surface.latex = this.mathField.latex(); // simple API
+            this.surface.fun = this.mathField.text()
           }
         }
       });
       this.mathField.latex(this.surface.latex);
-      this.surface.fun = latex2csterm(this.surface.latex);
+      //this.surface.fun = latex2csterm(this.surface.latex);
     },
   });
 
