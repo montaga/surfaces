@@ -7,7 +7,7 @@ var MQ = MathQuill.getInterface(2); // for backcompat
 
 var data = {
   surfaces: [{
-    latex: `{\\left({x}^{2}+{y}^{2}+{z}^{2}-{\\left(\\frac{1}{2}+{a}\\right)}^{2}\\right)}^{2}-\\frac{{{3}\\cdot{\\left({\\left(\\frac{1}{{2}}+{a}\\right)}^{2}\\right)}-{1}}}{{{3}-{\\left({\\left(\\frac{1}{{2}}+{a}\\right)}^{2}\\right)}}}\\cdot{\\left({1}-{z}-\\sqrt{{{2}}}\\cdot{x}\\right)}\\cdot{\\left({1}-{z}+\\sqrt{{{2}}}\\cdot{x}\\right)}\\cdot{\\left({1}+{z}+\\sqrt{{{2}}}\\cdot{y}\\right)}\\cdot{\\left({1}+{z}-\\sqrt{{{2}}}\\cdot{y}\\right)}`,
+    latex: `\\left(x^2+y^2+z^2-a\\right)^2-\\frac{3a-1}{3-a}\\cdot \\left(1-z-\\sqrt{2}x\\right)\\cdot \\left(1-z+\\sqrt{2}x\\right)\\cdot \\left(1+z+\\sqrt{2}y\\right)\\cdot \\left(1+z-\\sqrt{2}y\\right)`,
     frontcolor: "#516594",
     backcolor: "#c47c17",
     alpha: 1
@@ -144,13 +144,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
     props: ["surface", "onesurface", "index"],
     template: `
     <div class="surface">
-      <div>
-        <span class="math-field" ref="math"></span>
-      </div>
-      <div>
+      <div class="parameters">
         <input type="color" v-model="surface.frontcolor">
         <input type="color" v-model="surface.backcolor">
+        <br>
         <input type="range" min="0" step=".01" max="1" v-model="surface.alpha">
+      </div>
+      <div class="math-container">
+        <span class="math-field" ref="math"></span>
       </div>
       <button v-on:click="remove(surface)" v-if="!onesurface">delete surface</button>
     </div>`,
@@ -184,6 +185,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
           edit: () => { // useful event handlers
             this.surface.latex = this.mathField.latex(); // simple API
             this.surface.fun = this.mathField.text();
+            console.log(this.surface.latex);
+            console.log(this.surface.fun);
             updatesurface(this.index);
           }
         }
