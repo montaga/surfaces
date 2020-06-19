@@ -38,7 +38,7 @@ S(r) := (r * r - zoom*zoom);
 
 //fun is the user defined trivariate polynomial
 
-fun0(x, y, z) := (x ^ 2 + y ^ 2 + z ^ 2 - (0.5 + a) ^ 2) ^ 2 - (3.0 * ((0.5 + a) ^ 2) - 1.0) / (3.0 - ((0.5 + a) ^ 2)) * (1 - z - sqrt(2) * x) * (1 - z + sqrt(2) * x) * (1 + z + sqrt(2) * y) * (1 + z - sqrt(2) * y);
+fun1(x, y, z) := (x ^ 2 + y ^ 2 + z ^ 2 - (0.5 + a) ^ 2) ^ 2 - (3.0 * ((0.5 + a) ^ 2) - 1.0) / (3.0 - ((0.5 + a) ^ 2)) * (1 - z - sqrt(2) * x) * (1 - z + sqrt(2) * x) * (1 + z + sqrt(2) * y) * (1 + z - sqrt(2) * y);
 
 
 frontcolors = [[0.3176470588235294, 0.396078431372549, 0.5803921568627451]];
@@ -48,9 +48,6 @@ lightcolor = gray(.2);
 alphas = [.99];
 Nsurf = 1;
 
-//F takes vec3 instead of 3 variables
-F(p) := [fun0(p.x, p.y, p.z)];
-    
 //casteljau algorithm to evaluate and subdivide polynomials in Bernstein form.
 //poly is a vector containing the coefficients, i.e. p(x) = sum(0..N, i, poly_(i+1) * b_(i,N)(x)) where b_(i,N)(x) = choose(N, i)*x^i*(1-x)^(N-1)
 casteljau(poly, x) := (
@@ -70,11 +67,7 @@ eval(poly, x) := casteljau(poly, x)_1;
 
 //this function has to be called whenever fun changes
 init() := (
-  dx = .05; dy =.02;
-  diff(fun0(x,y,z), x, dxfun0(x,y,z) := #);
-  diff(fun0(x,y,z), y, dyfun0(x,y,z) := #);
-  diff(fun0(x,y,z), z, dzfun0(x,y,z) := #);
-  
+  dx = .05; dy =.02;  
 
   //The following line is DIRTY, but it makes the application run smooth for high degrees. :-)
   //Nethertheless, it might cause render errors for high degree surfaces. In fact, only a subset of the surface is rendered.
@@ -96,19 +89,48 @@ init() := (
   
   B = (inverse(A)); //B interpolates polynomials (in Bernstein basis), given the values [p(li_1), p(li_2), ...]
 
-    
+  forall(1..Nsurf, pid,
+    parse("F" + pid + "(p) := fun" + (pid) + "(p.x, p.y, p.z);");
+    forall(["x","y","z"], var,
+      parse("diff(fun" + (pid) + "(x,y,z), " + var + ", d" + var + "fun" + pid + "(x,y,z) := #);");
+    );
+    parse("dF" + pid + "(p) := [dxfun" + pid + "(p.x, p.y, p.z), dyfun" + pid + "(p.x, p.y, p.z), dzfun" + (pid) + "(p.x, p.y, p.z)];");
+  );
+  //overwrite function to avoid quadratic running time in number of surfaces
+  parse("nsign(pixel, a, b) := ( regional(ans); ans = 0;"
+    + sum(
+        apply(1..Nsurf, pid,
+          " ans = ans + nsign(B * apply(li, F" + pid + "(ray(pixel, a+#*(b-a)))));"
+        )
+      )
+    + "ans );" //return value   
+  );
+  //overwrite function to avoid quadratic running time in number of surfaces
+  parse("  bisectf(pixel, x0, x1) := (regional(v0, v1, m, vm); m = 0;"
+  + sum(
+      apply(1..Nsurf, pid,
+        "v0 = F" + pid + "(ray(pixel, x0));" +
+        "v1 = F" + pid + "(ray(pixel, x1));" +
+        "if(min(v0,v1)<= 0 & 0<=max(v0,v1), " +
+          "repeat(11," + 
+            "m = (x0 + x1) / 2; vm = F" + pid + "(ray(pixel, m));" +
+            "if (min(v0,vm) <= 0 & 0 <= max(v0, vm), (x1 = m; v1 = vm;), (x0 = m; v0 = vm;) );" +
+          ");" +
+          "normal = dF" + pid + "(ray(pixel, m)); normal = normal / abs(normal);" + 
+          "frontcolor = frontcolors_" + pid + ";" + 
+          "backcolor = backcolors_" + pid + ";" +
+          "alpha = alphas_" + pid + ";" +
+        ");"
+      )
+    ) + ");"
+  );
+  
 );
 init();
 
 //B3 is a matrix that interpolates quadratic polynomials (in monomial basis), given the values [p(-2), p(0), p(2)]
 B3 = inverse(apply([-2, 0, 2], c, apply(0 .. 2, i, c ^ i))); 
 
-//use symbolic differentation function
-dF(p) := [[
-    dxfun0(p.x,p.y,p.z),
-    dyfun0(p.x,p.y,p.z),
-    dzfun0(p.x,p.y,p.z)
-]];
 
 componentwise(a, b):= (a_1*b_1, a_2*b_2, a_3*b_3);
 
@@ -135,42 +157,6 @@ nsign(poly) := (//count the number of sign changes in array
     );
   );
   ans
-);
-
-nsign(pixel, a, b) := ( //Descartes rule of sign for the interval (a,b) (together for all polynomials)
-  regional(ans);
-  //obtain the coefficients in bernstein basis of F along the ray in interval (a,b) by interpolation within this interval
-  ans = 0;
-  forall(1..Nsurf, pid,
-    ans = ans + nsign(B * apply(li,
-      F(ray(pixel, a+#*(b-a)))_pid //evaluate F(ray(pixel, ·)) along Chebyshev nodes for (a,b)
-    ));
-  );
-  ans //return value   
-);
-
-
-//bisect F(ray(pixel, ·)) in [x0, x1] assuming that F(ray(pixel, x0)) and F(ray(pixel, x1)) have opposite signs
-bisectf(pixel, x0, x1) := (
-    regional(v0, v1, m, vm);
-    m = 0;
-    forall(1..Nsurf, pid,
-      v0 = F(ray(pixel, x0))_pid;
-      v1 = F(ray(pixel, x1))_pid;
-      if(min(v0,v1)<= 0 & 0<=max(v0,v1),
-        repeat(11,
-          m = (x0 + x1) / 2; vm = F(ray(pixel, m))_pid;
-          if (min(v0,vm) <= 0 & 0 <= max(v0, vm), //sgn(v0)!=sgn(vm); avoid products due numerics
-              (x1 = m; v1 = vm;),
-              (x0 = m; v0 = vm;)
-          );
-        );
-        normal = dF(ray(pixel, m))_pid; normal = normal / abs(normal);
-        frontcolor = frontcolors_pid;
-        backcolor = backcolors_pid;
-        alpha = alphas_pid;
-      );
-    );
 );
 
 

@@ -39,39 +39,27 @@ function latex2csterm(latex) {
 }
 
 function updatesurfaces(surfaces) {
-  for (let k = 0; k < surfaces.length; k++) {
-    updatesurface(k);
-  }
   cdy.evokeCS(`
     Nsurf = ${surfaces.length};
-    //F takes vec3 instead of 3 variables
-    F(p) := ([
-      ${surfaces.map((s,k)=>`fun${k}(p.x, p.y, p.z)`).join(', ')}
-    ]);
-    dF(p) := ([
-      ${surfaces.map((s,k)=>`[
-        dxfun${k}(p.x, p.y, p.z),
-        dyfun${k}(p.x, p.y, p.z),
-        dzfun${k}(p.x, p.y, p.z)
-        ]`).join(', ')}
-    ]);
     frontcolors = [${surfaces.map(s => hex2ccolor(s.frontcolor)).join(",")}];
     backcolors = [${surfaces.map(s => hex2ccolor(s.backcolor)).join(",")}];
     alphas = [${surfaces.map(s => s.alpha).join(",")}];
   `);
+  for (let k = 0; k < surfaces.length; k++) {
+    updatesurface(k);
+  }
+  cdy.evokeCS('init();');
 }
 
 function updatesurface(k) {
-  cdy.evokeCS(`fun${k}(x,y,z) := (${data.surfaces[k].fun});
-  ////fallbacks if diff does not work
-  eps = 0.01;
-  dxfun${k}(x,y,z) := (fun${k}(x+eps,y,z)-fun${k}(x-eps,y,z))/(2*eps);
-  dyfun${k}(x,y,z) := (fun${k}(x,y+eps,z)-fun${k}(x,y-eps,z))/(2*eps);
-  dzfun${k}(x,y,z) := (fun${k}(x,y,z+eps)-fun${k}(x,y,z-eps))/(2*eps);
+  const term = data.surfaces[k].fun;
+  k++; //cindyscript starts indexing with 1
+  cdy.evokeCS(`fun${k}(x,y,z) := (${term});
   diff(fun${k}(x,y,z), x, dxfun${k}(x,y,z) := #);
   diff(fun${k}(x,y,z), y, dyfun${k}(x,y,z) := #);
   diff(fun${k}(x,y,z), z, dzfun${k}(x,y,z) := #);
-  `);
+  F${k}(p):=fun${k}(p.x, p.y, p.z);
+  dF${k}(p):=[dxfun${k}(p.x,p.y,p.z), dyfun${k}(p.x,p.y,p.z), dzfun${k}(p.x,p.y,p.z)];`);
 }
 
 let scripts = {};
