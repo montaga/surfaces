@@ -24,17 +24,17 @@ sx = mouse().x;
 sy = mouse().y;
 dragging = false;
 N = 5;
-zoom = 2.2;
+zoom = 1/2.2;
 a = 0.3;
 //alpha = .7;
 
 //we stand at position mat*(0, 0, -2.2) and watch to (0,0,0).
 //ray(pixel, t) is the point in R^3 that lies at position t the ray behind the pixel at location pixel(vec2)
 //t=0 is corresponds to points within the interesting area near (0,0,0)
-ray(pixel, t) := mat * ((t+2.2) * (pixel.x, pixel.y, 1) + (0, 0, -2.2));
+ray(pixel, t) := mat * ((t+2.2) * (pixel.x, pixel.y, 1) + (0, 0, -2.2)) * zoom;
 raydir(pixel) := (v = mat * (pixel.x, pixel.y, 1); v/|v|);
 //sphere with radius 1 for clipping
-S(r) := (r * r - 1);
+S(r) := (r * r - zoom*zoom);
 
 //fun is the user defined trivariate polynomial
 
@@ -49,7 +49,7 @@ alphas = [.99];
 Nsurf = 1;
 
 //F takes vec3 instead of 3 variables
-F(p) := (p=p/zoom;[fun0(p.x, p.y, p.z)]);
+F(p) := [fun0(p.x, p.y, p.z)];
     
 //casteljau algorithm to evaluate and subdivide polynomials in Bernstein form.
 //poly is a vector containing the coefficients, i.e. p(x) = sum(0..N, i, poly_(i+1) * b_(i,N)(x)) where b_(i,N)(x) = choose(N, i)*x^i*(1-x)^(N-1)
@@ -104,12 +104,11 @@ init();
 B3 = inverse(apply([-2, 0, 2], c, apply(0 .. 2, i, c ^ i))); 
 
 //use symbolic differentation function
-dF(p) := (p=p/zoom; [[
+dF(p) := [[
     dxfun0(p.x,p.y,p.z),
     dyfun0(p.x,p.y,p.z),
     dzfun0(p.x,p.y,p.z)
-]]
-);
+]];
 
 componentwise(a, b):= (a_1*b_1, a_2*b_2, a_3*b_3);
 

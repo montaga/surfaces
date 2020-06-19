@@ -45,10 +45,10 @@ function updatesurfaces(surfaces) {
   cdy.evokeCS(`
     Nsurf = ${surfaces.length};
     //F takes vec3 instead of 3 variables
-    F(p) := (p=p/zoom;[
+    F(p) := ([
       ${surfaces.map((s,k)=>`fun${k}(p.x, p.y, p.z)`).join(', ')}
     ]);
-    dF(p) := (p=p/zoom;[
+    dF(p) := ([
       ${surfaces.map((s,k)=>`[
         dxfun${k}(p.x, p.y, p.z),
         dyfun${k}(p.x, p.y, p.z),

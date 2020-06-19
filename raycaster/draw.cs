@@ -33,7 +33,7 @@ alpha = ((.4 + PB.y) / .8) * .7 + .3;*/
 PC.x = 0.65;
 if (PC.y > .4, PC.y = .4);
 if (PC.y < -.4, PC.y = -.4);
-zoom = exp(3 * PC.y - 1);
+zoom = exp(-3 * PC.y + 1);
 
 //configuration for the lights in the scene. A light has a position, a gamma-parameter for its shininess and a color
 lightdirs = [
@@ -150,7 +150,7 @@ colorplot(
     raycast(
       #, 
       (-spoly_2 - re(sqrt(D))) / (2 * spoly_3), //intersection entering the ball
-      (-spoly_2 + re(sqrt(D))) / (2 * spoly_3) //intersection leaving the ball
+      (-spoly_2 + re(sqrt(D))) / (2 * spoly_3)//intersection leaving the ball
     );              
   );
   color //return value
