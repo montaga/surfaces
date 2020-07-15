@@ -123,14 +123,10 @@ Promise.all(
       }],
     });
     updatesurfaces(data.surfaces);
-  });
-
-
-
-window.addEventListener('DOMContentLoaded', (event) => {
-  Vue.component('surface-component', {
-    props: ["surface", "onesurface", "index"],
-    template: `
+  }).then(function() {
+    Vue.component('surface-component', {
+      props: ["surface", "onesurface", "index"],
+      template: `
     <div class="surface">
       <div class="parameters">
         <input type="color" v-model="surface.frontcolor">
@@ -141,94 +137,94 @@ window.addEventListener('DOMContentLoaded', (event) => {
       <div class="math-container">
         <span class="math-field" ref="math"></span>
       </div>
-      <button v-on:click="remove(surface)" v-if="!onesurface">delete surface</button>
+      <button v-on:click="remove(surface)" v-if="!onesurface">remove surface</button>
     </div>`,
-    methods: {
-      remove: function(s2d) {
-        data.surfaces = data.surfaces.filter(s => (s !== s2d));
-      }
-    },
-    watch: {
-      "surface.fun": function(fun) {
-        updatesurface(this.index);
+      methods: {
+        remove: function(s2d) {
+          data.surfaces = data.surfaces.filter(s => (s !== s2d));
+        }
       },
-      "surface.frontcolor": function(color) {
-        cdy.evokeCS(`frontcolors_${this.index+1} = ${hex2ccolor(color)};`);
-      },
-      "surface.backcolor": function(color) {
-        cdy.evokeCS(`backcolors_${this.index+1} = ${hex2ccolor(color)};`);
-      },
-      "surface.alpha": function(alpha) {
-        cdy.evokeCS(`alphas_${this.index+1} = ${alpha};`);
-      },
-      "surface.latex": function(latex) {
+      watch: {
+        "surface.fun": function(fun) {
+          updatesurface(this.index);
+        },
+        "surface.frontcolor": function(color) {
+          cdy.evokeCS(`frontcolors_${this.index+1} = ${hex2ccolor(color)};`);
+        },
+        "surface.backcolor": function(color) {
+          cdy.evokeCS(`backcolors_${this.index+1} = ${hex2ccolor(color)};`);
+        },
+        "surface.alpha": function(alpha) {
+          cdy.evokeCS(`alphas_${this.index+1} = ${alpha};`);
+        },
+        "surface.latex": function(latex) {
           //this.surface.fun = latex2csterm(latex);
           updatesurface(this.index);
         }
-    },
-    mounted: function() {
-      this.mathField = MQ.MathField(this.$refs.math, {
-        spaceBehavesLikeTab: true, // configurable
-        handlers: {
-          edit: () => { // useful event handlers
-            this.surface.latex = this.mathField.latex(); // simple API
-            this.surface.fun = this.mathField.text();
-            console.log(this.surface.latex);
-            console.log(this.surface.fun);
-            updatesurface(this.index);
+      },
+      mounted: function() {
+        this.mathField = MQ.MathField(this.$refs.math, {
+          spaceBehavesLikeTab: true, // configurable
+          handlers: {
+            edit: () => { // useful event handlers
+              this.surface.latex = this.mathField.latex(); // simple API
+              this.surface.fun = this.mathField.text();
+              console.log(this.surface.latex);
+              console.log(this.surface.fun);
+              updatesurface(this.index);
+            }
           }
-        }
-      });
-      this.mathField.latex(this.surface.latex);
-      this.surface.fun = this.mathField.text();
-      updatesurface(this.index);
-            //this.surface.fun = latex2csterm(this.surface.latex);
-    },
-    updated: function() {
-      this.mathField.latex(this.surface.latex);
-      this.surface.fun = this.mathField.text();
-    },
-  });
+        });
+        this.mathField.latex(this.surface.latex);
+        this.surface.fun = this.mathField.text();
+        updatesurface(this.index);
+        //this.surface.fun = latex2csterm(this.surface.latex);
+      },
+      updated: function() {
+        this.mathField.latex(this.surface.latex);
+        this.surface.fun = this.mathField.text();
+      },
+    });
 
 
-  var app = new Vue({
-    el: '#app',
-    data: data,
-    methods: {
-      add: () => {
-        data.surfaces.push({
-          fun: "x^2+y^2+z^2-1",
-          latex: "x^2+y^2+z^2-1",
-          frontcolor: "#bbbbbb",
-          backcolor: "#50aa20",
-          alpha: 1
-        });
+    var app = new Vue({
+      el: '#app',
+      data: data,
+      methods: {
+        add: () => {
+          data.surfaces.push({
+            fun: "x^2+y^2+z^2-1",
+            latex: "x^2+y^2+z^2-1",
+            frontcolor: "#bbbbbb",
+            backcolor: "#50aa20",
+            alpha: 1
+          });
+        },
+        addcoordinates: () => {
+          data.surfaces.push({
+            latex: "y^2+z^2+x\\cdot\\left(x-1\\right)^3\\cdot\\left(\\left(x-\\frac{1}{4}\\right)^2+0.02\\right)",
+            frontcolor: "#ff0000",
+            backcolor: "#ff0000",
+            alpha: 1
+          });
+          data.surfaces.push({
+            latex: "x^2+z^2+y\\cdot\\left(y-1\\right)^3\\cdot\\left(\\left(y-\\frac{1}{4}\\right)^2+0.02\\right)",
+            frontcolor: "#00ff00",
+            backcolor: "#00ff00",
+            alpha: 1
+          });
+          data.surfaces.push({
+            latex: "x^2+y^2+z\\cdot\\left(z-1\\right)^3\\cdot\\left(\\left(z-\\frac{1}{4}\\right)^2+0.02\\right)",
+            frontcolor: "#0000ff",
+            backcolor: "#0000ff",
+            alpha: 1
+          });
+        },
       },
-      addcoordinates: () => {
-        data.surfaces.push({
-          latex: "y^2+z^2+x\\cdot\\left(x-1\\right)^3\\cdot\\left(\\left(x-\\frac{1}{4}\\right)^2+0.02\\right)",
-          frontcolor: "#ff0000",
-          backcolor: "#ff0000",
-          alpha: 1
-        });
-        data.surfaces.push({
-          latex: "x^2+z^2+y\\cdot\\left(y-1\\right)^3\\cdot\\left(\\left(y-\\frac{1}{4}\\right)^2+0.02\\right)",
-          frontcolor: "#00ff00",
-          backcolor: "#00ff00",
-          alpha: 1
-        });
-        data.surfaces.push({
-          latex: "x^2+y^2+z\\cdot\\left(z-1\\right)^3\\cdot\\left(\\left(z-\\frac{1}{4}\\right)^2+0.02\\right)",
-          frontcolor: "#0000ff",
-          backcolor: "#0000ff",
-          alpha: 1
-        });
-      },
-    },
-    watch: {
-      surfaces: updatesurfaces,
-      backgroundcolor: (color) => cdy.evokeCS(`backgroundcolor = ${hex2ccolor(color)};`),
-      //lightcolor: (color) => cdy.evokeCS(`lightcolor = ${hex2ccolor(color)};`)
-    }
+      watch: {
+        surfaces: updatesurfaces,
+        backgroundcolor: (color) => cdy.evokeCS(`backgroundcolor = ${hex2ccolor(color)};`),
+        //lightcolor: (color) => cdy.evokeCS(`lightcolor = ${hex2ccolor(color)};`)
+      }
+    });
   });
-});
