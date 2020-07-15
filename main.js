@@ -13,7 +13,7 @@ var data = {
     alpha: 1
   }],
   backgroundcolor: "#888888",
-  lightcolor: "#333333"
+  //lightcolor: "#333333"
 };
 
 function hex2ccolor(hex) {
@@ -228,7 +228,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     watch: {
       surfaces: updatesurfaces,
       backgroundcolor: (color) => cdy.evokeCS(`backgroundcolor = ${hex2ccolor(color)};`),
-      lightcolor: (color) => cdy.evokeCS(`lightcolor = ${hex2ccolor(color)};`)
+      //lightcolor: (color) => cdy.evokeCS(`lightcolor = ${hex2ccolor(color)};`)
     }
   });
 });

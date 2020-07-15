@@ -21,7 +21,6 @@
   <div id="app">
     <div>
       background: <input type="color" v-model="backgroundcolor">
-      light: <input type="color" v-model="lightcolor">
     </div>
     <surface-component v-for="(surface, index) in surfaces" v-bind:surface="surface" v-bind:index="index" v-bind:onesurface="surfaces.length==1"></surface-component>
     <div>
